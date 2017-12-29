@@ -6,6 +6,10 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -21,10 +25,24 @@ import org.eclipse.wb.swing.FocusTraversalOnArray;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.dropbox.core.DbxApiException;
+import com.dropbox.core.DbxException;
+import com.dropbox.core.DbxRequestConfig;
+import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.files.FileMetadata;
+import com.dropbox.core.v2.files.ListFolderContinueErrorException;
+import com.dropbox.core.v2.files.ListFolderErrorException;
+import com.dropbox.core.v2.files.ListFolderResult;
+import com.dropbox.core.v2.files.Metadata;
+import com.dropbox.core.v2.files.UploadErrorException;
+import com.dropbox.core.v2.users.FullAccount;
+
 
 public class MainWindow {
 
 	public JFrame frame;
+	File jsonFile = new File(Main.workingDir + "/" + "Export.json");
+
 
 	public MainWindow() {
 		//Initialize UI
@@ -45,7 +63,7 @@ public class MainWindow {
 					"item", "description", "coverURL", "price", "category" 
 			};
 		JTable table = new JTable(Data.rowData, columnNames);
-
+		System.out.println(table.getColumnName(0));
 
 		table.getColumnModel().getColumn(0).setPreferredWidth(189);
 		table.getColumnModel().getColumn(1).setPreferredWidth(233);
@@ -53,6 +71,8 @@ public class MainWindow {
 		table.getColumnModel().getColumn(3).setPreferredWidth(40);
 		table.getColumnModel().getColumn(4).setPreferredWidth(139);
 		table.setFont(new Font("Helvetica", Font.PLAIN, 18));
+
+
 
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setViewportBorder(new MatteBorder(1, 1, 1, 1, (Color) new Color(0, 0, 0)));
@@ -73,7 +93,7 @@ public class MainWindow {
 		frame.setJMenuBar(menuBar);
 
 		JMenu mnFile = new JMenu("File");
-		mnFile.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+		mnFile.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 		menuBar.add(mnFile);
 
 
@@ -88,28 +108,94 @@ public class MainWindow {
 
 				System.out.println(new File(Main.workingDir + "/" + "Export.json"));
 
-				File jsonFile = new File(Main.workingDir + "/" + "Export.json");
+
 				List<CardData> card;
 
 				//Create POJO
 				card = Data.convert(jsonFile);
-				
-				
+
+
 				//Clean POJO
 				card = Data.cleanCard(card);
 				System.out.println("Card: " + card.toString());
-				
+
 				for (int i = 0; i < table.getRowCount(); i++) {
-						table.setValueAt(card.get(i), i, 0);
-						System.out.println(card.get(i));
-					
+					table.setValueAt(card.get(i), i, 0);
+					System.out.println(card.get(i));
+
 				}
 
 
 			}
 		});
-		mntmOpen.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+		mntmOpen.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 		mnFile.add(mntmOpen);
+
+
+
+
+
+
+
+
+		//-------------------------------------------------------------------
+
+
+
+		//Open from Dropbox
+		JMenuItem mntmOpenFromDropbox = new JMenuItem(new AbstractAction("Open from DropBox") 
+		{
+			private static final long serialVersionUID = 8845507260090824169L;
+
+			public void actionPerformed(ActionEvent e) {
+
+				// Create Dropbox client
+
+				DbxRequestConfig config = DbxRequestConfig.newBuilder("MannaCardEditor-DB/0.1").build();
+				DbxClientV2 client = new DbxClientV2(config , Main.ACCESS_TOKEN);
+
+
+
+				// Get current account info
+				FullAccount account = null;
+				try {
+					account = client.users().getCurrentAccount();
+				} catch (Exception e1) {e1.printStackTrace();}
+				System.out.println(account.getName().getDisplayName());
+
+
+
+
+				// Get files and folder metadata from Dropbox root directory
+				ListFolderResult result = null;
+				try {
+					result = client.files().listFolder("");
+				} catch (Exception e1) {e1.printStackTrace();}
+
+
+				while (true) {
+					for (Metadata metadata : result.getEntries()) {
+						System.out.println("Folder: " + metadata.getPathLower());
+					}
+
+					if (!result.getHasMore()) {
+						break;
+					}
+
+					try {
+						result = client.files().listFolderContinue(result.getCursor());
+					} catch (Exception e1) {e1.printStackTrace();}
+				}
+				
+				
+				// Upload "test.txt" to Dropbox
+				try (InputStream in = new FileInputStream(Main.workingDir + "/file1.json")) {
+					FileMetadata metadata = client.files().uploadBuilder("/file1.json")
+							.uploadAndFinish(in);
+				} catch (Exception e1) {e1.printStackTrace();}
+			}
+		});
+		mnFile.add(mntmOpenFromDropbox);
 
 
 
@@ -148,7 +234,7 @@ public class MainWindow {
 				Main.saveToJSON(itemList, "Export.json");
 			}
 		});
-		mntmSave.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+		mntmSave.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 
 		mnFile.add(mntmSave);
 
@@ -161,7 +247,7 @@ public class MainWindow {
 
 
 		JMenuItem mntmExit = new JMenuItem("Exit");
-		mntmExit.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+		mntmExit.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 		mnFile.add(mntmExit);
 		frame.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{frame.getContentPane(), scrollPane, table}));
 		frame.setVisible(true);

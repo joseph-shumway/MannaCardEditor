@@ -17,8 +17,10 @@ import org.json.simple.parser.ParseException;
 public class Main {
 
 	public static String workingDir = System.getProperty("user.dir");
-
-	public static void main(String[] args) {
+	public static String ACCESS_TOKEN = "bpHcTOJhqHAAAAAAAAABZASWYVkvPgxEQbqwmuMGvi2qUv6fGzwdfFL4rs_Th_Ky";
+	
+	
+	public static void main(String[] args) throws Exception {
 
 
 
@@ -26,21 +28,9 @@ public class Main {
 
 		MainWindow window = new MainWindow();
 		
-		try {
-			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnsupportedLookAndFeelException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		//try {
+		//	UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		//} catch (Exception e) {e.printStackTrace();}
 		
 		SwingUtilities.updateComponentTreeUI(window.frame);
 
@@ -54,14 +44,8 @@ public class Main {
 		System.out.println(workingDir + "/" + filename);
 		try (FileWriter file = new FileWriter(workingDir + "/" + filename)) 
 		{
-
 			file.write(itemList.toString());
-
-		} catch (IOException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} catch (Exception e) {e.printStackTrace();}
 
 	}
 	
@@ -75,16 +59,7 @@ public class Main {
 		//Parse JSON File
 		try {
 			jArray = (JSONArray) parser.parse(new FileReader(file));
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} //the location of the file
+		} catch (Exception e) {e.printStackTrace();}
 		
 		
 		return jArray;

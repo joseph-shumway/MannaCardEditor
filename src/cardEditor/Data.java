@@ -177,11 +177,7 @@ public class Data {
 
 		try (FileWriter fw = new FileWriter(Main.workingDir + "/" + "Export1.json")) {
 			fw.write(output);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
+		} catch (Exception e) {e.printStackTrace();}
 
 
 		return true;
@@ -202,9 +198,7 @@ public class Data {
 		Scanner scan = null;
 		try {
 			scan = new Scanner(jsonFile);
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
-		}
+		} catch (Exception e1) {e1.printStackTrace();}
 		
 		
 		String jsonString = scan.nextLine();
@@ -216,13 +210,7 @@ public class Data {
 					objectMapper.getTypeFactory().constructCollectionType(List.class, CardData.class));
 			return cards;
 			
-		} catch (JsonParseException e) {
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		} catch (Exception e) {e.printStackTrace();}
 		return null;
 		
 
@@ -237,14 +225,14 @@ public class Data {
 	//Clean Card (remove labels in front of data)
 	public static List<CardData> cleanCard(List<CardData> cardList) {
 		
-		List<CardData> newCardList;
+		List<CardData> newCardList = null;
 		
 		
 		for (CardData cards: cardList) {
 			System.out.println(cards.category);
 			cards.category = cards.category.substring(10);
 			newCardList.remove(0);
-			newCardList.get(0).add(1, cards.category);
+			
 		}
 		
 		
